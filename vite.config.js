@@ -9,13 +9,26 @@ export default defineConfig({
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'motion-vendor': ['framer-motion'],
-          'ui-vendor': ['lucide-react', 'date-fns'],
+        // Vite 8 / Rolldown requires manualChunks as a FUNCTION, not an object
+        manualChunks(id) {
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            return 'react-vendor';
+          }
+          if (id.includes('@supabase')) {
+            return 'supabase-vendor';
+          }
+          if (id.includes('framer-motion')) {
+            return 'motion-vendor';
+          }
+          if (id.includes('lucide-react') || id.includes('date-fns')) {
+            return 'ui-vendor';
+          }
+          if (id.includes('leaflet')) {
+            return 'leaflet-vendor';
+          }
         }
       }
     }
   }
 })
+
