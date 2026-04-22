@@ -6,6 +6,7 @@ import Admin from './pages/Admin';
 import Profile from './pages/Profile';
 import Campaigns from './pages/Campaigns';
 import Community from './pages/Community';
+import IndiaHeatmap from './pages/IndiaHeatmap';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -23,6 +24,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/heatmap" element={<IndiaHeatmap />} />
           </Routes>
         </main>
         <Footer />

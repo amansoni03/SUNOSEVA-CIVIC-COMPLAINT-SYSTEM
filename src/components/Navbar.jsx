@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
-import { User, LogOut, LayoutDashboard, Settings, Search } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Settings, Search, Map } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -40,6 +40,9 @@ export default function Navbar() {
           <div className="flex items-center gap-6 flex-grow ml-8 hidden md:flex">
             <Link to="/campaigns" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition">Campaigns</Link>
             <Link to="/community" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition">Community</Link>
+            <Link to="/heatmap" className="text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition shadow-sm flex items-center gap-1.5">
+              <Map size={14} /> India Heatmap
+            </Link>
             {user && (
               <Link to="/profile" className="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 hover:text-blue-800 transition shadow-sm flex items-center gap-1.5 ml-2">
                 <Search size={14} /> Track Status
