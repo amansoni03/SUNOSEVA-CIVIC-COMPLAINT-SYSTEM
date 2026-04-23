@@ -7,11 +7,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     chunkSizeWarningLimit: 1600,
-    rollupOptions: {
+    // Vite 8 uses Rolldown — use rolldownOptions for code splitting
+    rolldownOptions: {
       output: {
-        // Vite 8 / Rolldown requires manualChunks as a FUNCTION, not an object
         manualChunks(id) {
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+          if (id.includes('node_modules/react') || id.includes('react-dom') || id.includes('react-router-dom')) {
             return 'react-vendor';
           }
           if (id.includes('@supabase')) {
@@ -31,4 +31,3 @@ export default defineConfig({
     }
   }
 })
-
