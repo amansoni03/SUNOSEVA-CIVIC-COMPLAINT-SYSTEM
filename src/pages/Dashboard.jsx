@@ -2,10 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Mic, MicOff, Image as ImageIcon, MapPin, Loader2, Clock, CheckCircle2 } from 'lucide-react';
+import { Mic, MicOff, Image as ImageIcon, MapPin, RefreshCw, Clock, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -254,12 +256,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-6 max-w-3xl mx-auto pb-20">
       <div className="flex justify-between items-center mb-8 border-b pb-4">
-        <h1 className="text-3xl font-bold text-gray-900">Citizen Dashboard</h1>
-        <button onClick={() => navigate('/')} className="text-blue-600 hover:underline font-medium">Home Feed</button>
+        <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+        <button onClick={() => navigate('/')} className="text-blue-600 hover:underline font-medium">{t('dashboard.home_feed')}</button>
       </div>
       
       <div className="glass rounded-3xl p-6 shadow-sm mb-10">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">New Complaint</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('dashboard.new_complaint')}</h2>
         
         {submitError && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 text-sm rounded-xl">
@@ -279,9 +281,9 @@ export default function Dashboard() {
               {isRecording ? <MicOff size={32} /> : <Mic size={32} />}
             </button>
             <p className={`text-sm font-medium text-center z-10 ${isRecording ? 'text-red-700' : 'text-blue-800'}`}>
-              {isRecording ? 'Recording (Tap to Stop)' : 'Tap to Speak'}
+              {isRecording ? t('dashboard.recording') : t('dashboard.tap_to_speak')}
             </p>
-            <p className="text-xs text-center text-blue-600/70 mt-1 z-10">We'll transcribe your voice into text automatically.</p>
+            <p className="text-xs text-center text-blue-600/70 mt-1 z-10">{t('dashboard.transcribe_hint')}</p>
             
             {audioPreviewUrl && !isRecording && (
               <div className="mt-6 w-full flex flex-col items-center z-10 bg-white/60 p-4 rounded-xl shadow-sm border border-blue-100">
@@ -298,13 +300,13 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.description_label')}</label>
             <textarea 
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm bg-white/70 resize-none"
               rows="4"
-              placeholder="Describe your issue here or use the voice recorder..."
+              placeholder={t('dashboard.description_placeholder')}
             ></textarea>
           </div>
 
@@ -312,7 +314,7 @@ export default function Dashboard() {
             <label className="flex flex-col items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/30 transition cursor-pointer">
               <ImageIcon size={20} />
               <span className="text-sm font-medium px-2 text-center">
-                {mediaFiles.length > 0 ? `${mediaFiles.length} file(s) selected` : 'Upload Media (Max 3)'}
+                {mediaFiles.length > 0 ? t('dashboard.files_selected', { count: mediaFiles.length }) : t('dashboard.upload_media')}
               </span>
               <input type="file" multiple accept="image/*,video/*" className="hidden" onChange={handleMediaChange} />
             </label>
@@ -322,7 +324,7 @@ export default function Dashboard() {
               className={`flex items-center justify-center gap-2 py-3 border rounded-xl font-medium transition ${location ? 'bg-green-50 border-green-200 text-green-700' : 'border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100'}`}
             >
               <MapPin size={20} />
-              {location ? 'Location Added' : 'Get Location'}
+              {location ? t('dashboard.location_added') : t('dashboard.get_location')}
             </button>
           </div>
 
@@ -331,17 +333,17 @@ export default function Dashboard() {
             disabled={isSubmitting}
             className="mt-2 w-full flex items-center justify-center py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition shadow-md disabled:bg-gray-700"
           >
-            {isSubmitting ? <><Loader2 className="animate-spin mr-2" /> Submitting...</> : 'Submit Complaint'}
+            {isSubmitting ? <><Loader2 className="animate-spin mr-2" /> {t('dashboard.submitting')}</> : t('dashboard.submit_complaint')}
           </button>
         </div>
       </div>
 
       {/* Complaint History Section */}
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Your Complaint History</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('dashboard.complaint_history')}</h2>
       {loadingHistory ? (
-        <div className="text-center text-gray-500 py-8">Loading history...</div>
+        <div className="text-center text-gray-500 py-8">{t('dashboard.loading_history')}</div>
       ) : myComplaints.length === 0 ? (
-        <div className="glass rounded-3xl p-8 text-center text-gray-500 font-medium">You haven't submitted any complaints yet.</div>
+        <div className="glass rounded-3xl p-8 text-center text-gray-500 font-medium">{t('dashboard.no_complaints')}</div>
       ) : (
         <div className="flex flex-col gap-4">
           {myComplaints.map(c => (

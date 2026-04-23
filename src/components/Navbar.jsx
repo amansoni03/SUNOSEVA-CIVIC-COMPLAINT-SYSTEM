@@ -3,8 +3,11 @@ import { useAuth } from '../lib/AuthContext';
 import { User, LogOut, LayoutDashboard, Settings, Search, Map } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -38,8 +41,8 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-6 flex-grow ml-8 hidden md:flex">
-            <Link to="/campaigns" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition">Campaigns</Link>
-            <Link to="/community" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition">Community</Link>
+            <Link to="/campaigns" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition">{t('common.campaigns')}</Link>
+            <Link to="/community" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition">{t('common.community')}</Link>
             <Link to="/heatmap" className="text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition shadow-sm flex items-center gap-1.5">
               <Map size={14} /> India Heatmap
             </Link>
@@ -51,6 +54,9 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
             {user ? (
               <div className="relative">
                 <button 
@@ -111,7 +117,7 @@ export default function Navbar() {
                 to="/login"
                 className="px-6 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-black transition shadow-md"
               >
-                Sign In
+                {t('common.login')}
               </Link>
             )}
           </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Camera, Save, Loader2, CheckCircle2, Clock, Search } from 'lucide-react';
+import { Camera, Save, RefreshCw, CheckCircle2, Clock, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Profile() {
@@ -191,7 +191,7 @@ export default function Profile() {
             </div>
 
             <button disabled={saving} type="submit" className="mt-4 flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition disabled:opacity-70">
-              {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />} 
+              {saving ? <RefreshCw className="animate-spin" size={20} /> : <Save size={20} />} 
               {saving ? 'Saving...' : 'Save Profile'}
             </button>
           </form>

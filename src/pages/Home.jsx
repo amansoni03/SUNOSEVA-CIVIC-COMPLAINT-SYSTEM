@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { MapPin, ThumbsUp, Image as ImageIcon, CheckCircle2, Clock, Volume2, Video, Search, Calendar, Filter } from 'lucide-react';
+import { MapPin, ThumbsUp, Image as ImageIcon, CheckCircle2, Clock, Volume2, Video, Search, Calendar, Filter, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow, isToday, isThisWeek, isThisMonth, parseISO } from 'date-fns';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { translateText } from '../lib/translator';
+import { Globe as GlobeIcon } from 'lucide-react';
 
 function CountUp({ to }) {
   const count = useMotionValue(0);
@@ -19,11 +22,14 @@ function CountUp({ to }) {
 }
 
 export default function Home() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('all'); // all, today, week, month
   const [searchQuery, setSearchQuery] = useState('');
+  const [translations, setTranslations] = useState({}); // { complaintId: translatedText }
+  const [translatingIds, setTranslatingIds] = useState(new Set());
 
   const totalComplaints = complaints.length;
   const resolvedComplaints = complaints.filter(c => c.status === 'Resolved').length;
@@ -99,6 +105,42 @@ export default function Home() {
     }
   };
 
+  const handleTranslate = async (complaint) => {
+    if (translations[complaint.id]) {
+      // Toggle back to original if already translated
+      setTranslations(prev => {
+        const next = { ...prev };
+        delete next[complaint.id];
+        return next;
+      });
+      return;
+    }
+
+    setTranslatingIds(prev => new Set(prev).add(complaint.id));
+    
+    // Translate to the current UI language
+    const targetLang = i18n.language; 
+    const result = await translateText(complaint.text, targetLang);
+    
+    if (!result.error) {
+      setTranslations(prev => ({ 
+        ...prev, 
+        [complaint.id]: { 
+          text: result.translatedText, 
+          engine: result.engine || 'Google' 
+        } 
+      }));
+    } else {
+      alert("Translation failed. Please check your internet or try again.");
+    }
+    
+    setTranslatingIds(prev => {
+      const next = new Set(prev);
+      next.delete(complaint.id);
+      return next;
+    });
+  };
+
   const handleUpvote = async (complaint) => {
     if (!user) {
       alert("Please login to upvote");
@@ -159,8 +201,8 @@ export default function Home() {
         />
         {/* Fallback UI if banner missing */}
         <div className="hidden w-full py-16 bg-gradient-to-r from-blue-700 via-orange-500 to-green-600 flex-col items-center justify-center text-white text-center px-4">
-          <h2 className="text-3xl md:text-5xl font-black mb-2 tracking-wide" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.3)" }}>HAR AWAAZ ZAROORI HAI!!</h2>
-          <p className="text-lg md:text-xl font-bold bg-white/20 px-6 py-2 rounded-full backdrop-blur-sm shadow-sm">Click here to submit your complaint</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-2 tracking-wide" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.3)" }}>{t('home.hero_tagline')}</h2>
+          <p className="text-lg md:text-xl font-bold bg-white/20 px-6 py-2 rounded-full backdrop-blur-sm shadow-sm">{t('home.click_to_submit')}</p>
         </div>
         
         {/* Hover Overlay */}
@@ -172,10 +214,10 @@ export default function Home() {
           SunoSeva
         </h1>
         <p className="text-2xl md:text-3xl font-black text-gray-800 max-w-2xl mx-auto tracking-widest" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.1), -1px -1px 2px rgba(255,255,255,0.8)" }}>
-          HAR AWAAZ ZAROORI HAI!!
+          {t('home.hero_tagline')}
         </p>
         <p className="text-md text-gray-800 max-w-xl mx-auto font-medium mt-4 bg-white/50 px-4 py-1 rounded-full inline-block backdrop-blur-sm">
-          A modern approach to reporting civic issues using your voice, location, and media.
+          {t('home.hero_desc')}
         </p>
       </div>
 
@@ -185,7 +227,7 @@ export default function Home() {
           to={user ? "/dashboard" : "/login"}
           className="px-10 py-4 text-lg md:text-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-[2rem] font-black transition transform shadow-[0_12px_24px_rgba(249,115,22,0.4),inset_0_3px_0_rgba(255,255,255,0.4)] hover:shadow-[0_15px_30px_rgba(249,115,22,0.5),inset_0_3px_0_rgba(255,255,255,0.6)] hover:-translate-y-2 active:translate-y-1 active:shadow-lg w-full max-w-xs md:max-w-sm text-center tracking-wide"
         >
-          {user ? 'Make a Complaint' : 'Login / Register'}
+          {user ? t('common.make_complaint') : t('common.login_register')}
         </Link>
         
         {/* Secondary Buttons Row */}
@@ -194,7 +236,7 @@ export default function Home() {
             to="/campaigns"
             className="px-8 py-3.5 bg-gradient-to-br from-blue-700 to-blue-900 text-white rounded-2xl font-bold transition transform shadow-[0_10px_20px_rgba(29,78,216,0.3),inset_0_2px_0_rgba(255,255,255,0.3)] hover:shadow-[0_15px_30px_rgba(29,78,216,0.5),inset_0_2px_0_rgba(255,255,255,0.5)] hover:-translate-y-1 active:translate-y-1 active:shadow-md"
           >
-            View NGO Campaigns
+            {t('common.view_ngo_campaigns')}
           </Link>
 
           {user && (
@@ -202,7 +244,7 @@ export default function Home() {
               to="/admin"
               className="px-8 py-3.5 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl font-bold transition transform shadow-[0_10px_20px_rgba(59,130,246,0.3),inset_0_2px_0_rgba(255,255,255,0.3)] hover:shadow-[0_15px_30px_rgba(59,130,246,0.5),inset_0_2px_0_rgba(255,255,255,0.5)] hover:-translate-y-1 active:translate-y-1 active:shadow-md"
             >
-              Admin Panel
+              {t('common.admin_panel')}
             </Link>
           )}
         </div>
@@ -212,27 +254,27 @@ export default function Home() {
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 px-4">
         <div className="glass rounded-3xl p-6 shadow-sm text-center transform transition hover:scale-105">
           <h3 className="text-4xl font-black text-orange-600 mb-2"><CountUp to={totalComplaints} /></h3>
-          <p className="text-gray-700 font-bold uppercase tracking-wider text-sm">Total Complaints</p>
+          <p className="text-gray-700 font-bold uppercase tracking-wider text-sm">{t('common.total_complaints')}</p>
         </div>
         <div className="glass rounded-3xl p-6 shadow-sm text-center transform transition hover:scale-105">
           <h3 className="text-4xl font-black text-green-600 mb-2"><CountUp to={resolvedComplaints} /></h3>
-          <p className="text-gray-700 font-bold uppercase tracking-wider text-sm">Resolved</p>
+          <p className="text-gray-700 font-bold uppercase tracking-wider text-sm">{t('common.resolved')}</p>
         </div>
         <div className="glass rounded-3xl p-6 shadow-sm text-center transform transition hover:scale-105">
           <h3 className="text-4xl font-black text-blue-900 mb-2"><CountUp to={activeComplaints} /></h3>
-          <p className="text-gray-700 font-bold uppercase tracking-wider text-sm">Active</p>
+          <p className="text-gray-700 font-bold uppercase tracking-wider text-sm">{t('common.active')}</p>
         </div>
       </div>
 
       <div className="w-full max-w-[90%] lg:max-w-[85%] text-left">
         <div className="flex justify-between items-end mb-8 px-2 border-b border-gray-200 pb-4">
           <h2 className="text-3xl font-black text-gray-900 flex items-center gap-3">
-            Public Incident Feed 
+            {t('common.public_feed')} 
             <span className="px-3 py-1 rounded-xl bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 text-sm font-bold shadow-sm">
               {complaints.length}
             </span>
           </h2>
-          <p className="text-gray-500 font-bold text-sm hidden md:block">Real-time civic reports from your community</p>
+          <p className="text-gray-500 font-bold text-sm hidden md:block">{t('home.real_time_subtitle')}</p>
         </div>
 
         {/* Filters Bar */}
@@ -244,7 +286,7 @@ export default function Home() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by area, description or category..."
+              placeholder={t('common.search_placeholder')}
               className="w-full pl-12 pr-4 py-3.5 bg-white rounded-2xl border-none focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 shadow-sm transition"
             />
           </div>
@@ -252,10 +294,10 @@ export default function Home() {
           {/* Date Range Tabs */}
           <div className="flex items-center gap-1 bg-gray-100/50 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide">
             {[
-              { id: 'all', label: 'All Time' },
-              { id: 'today', label: 'Today' },
-              { id: 'week', label: 'This Week' },
-              { id: 'month', label: 'This Month' }
+              { id: 'all', label: t('home.all_time') },
+              { id: 'today', label: t('home.today') },
+              { id: 'week', label: t('home.this_week') },
+              { id: 'month', label: t('home.this_month') }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -336,6 +378,14 @@ export default function Home() {
                       >
                         <Volume2 size={14} />
                       </button>
+                      <button 
+                        onClick={() => handleTranslate(c)}
+                        disabled={translatingIds.has(c.id)}
+                        className={`p-1.5 rounded-lg border transition shadow-sm ${translations[c.id] ? 'bg-indigo-600 text-white border-indigo-700' : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`} 
+                        title="Translate Complaint"
+                      >
+                        {translatingIds.has(c.id) ? <RefreshCw size={14} className="animate-spin" /> : <GlobeIcon size={14} />}
+                      </button>
                       <span className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1.5 rounded-lg border uppercase tracking-wider ${
                           c.status === 'Resolved' ? 'bg-green-100 text-green-700 border-green-200' :
                           c.status === 'In Progress' ? 'bg-amber-100 text-amber-700 border-amber-200' :
@@ -349,9 +399,16 @@ export default function Home() {
                 </div>
 
                 {/* Complaint Text */}
-                <p className="text-gray-800 font-semibold mb-6 text-lg leading-relaxed flex-grow">
-                  "{c.text}"
-                </p>
+                <div className="relative mb-6 flex-grow">
+                  <p className="text-gray-800 font-semibold text-lg leading-relaxed">
+                    "{translations[c.id]?.text || c.text}"
+                  </p>
+                  {translations[c.id] && (
+                    <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full absolute -bottom-4 right-0 flex items-center gap-1 shadow-sm border border-indigo-100 uppercase tracking-tighter">
+                      <GlobeIcon size={10} /> Translated by {translations[c.id].engine}
+                    </span>
+                  )}
+                </div>
 
                 {/* Media Thumbnails */}
                 {(c.image_urls?.length > 0 || c.image_url || c.video_url) && (

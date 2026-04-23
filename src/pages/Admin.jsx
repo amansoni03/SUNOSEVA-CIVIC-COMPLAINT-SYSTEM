@@ -3,9 +3,12 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { MapPin, ExternalLink, Image as ImageIcon, Video, Mic, Calendar, Target, Trash2, Plus, User, Phone, Mail } from 'lucide-react';
+import { MapPin, ExternalLink, Image as ImageIcon, Video, Mic, Calendar, Target, Trash2, Plus, User, Phone, Mail, Globe as GlobeIcon, RefreshCw } from 'lucide-react';
+import { translateText } from '../lib/translator';
+import { useTranslation } from 'react-i18next';
 
 export default function Admin() {
+  const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   
@@ -49,9 +52,12 @@ export default function Admin() {
 }
 
 function ComplaintsManager() {
+  const { t, i18n } = useTranslation();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
+  const [translations, setTranslations] = useState({});
+  const [translatingIds, setTranslatingIds] = useState(new Set());
 
   useEffect(() => {
     fetchComplaints();
@@ -80,6 +86,34 @@ function ComplaintsManager() {
       console.error(err);
       alert("Failed to update status");
     }
+  };
+
+  const handleTranslate = async (complaint) => {
+    if (translations[complaint.id]) {
+        setTranslations(prev => {
+            const next = { ...prev };
+            delete next[complaint.id];
+            return next;
+        });
+        return;
+    }
+
+    setTranslatingIds(prev => new Set(prev).add(complaint.id));
+    const result = await translateText(complaint.text, i18n.language); 
+    if (!result.error) {
+        setTranslations(prev => ({ 
+            ...prev, 
+            [complaint.id]: { 
+                text: result.translatedText, 
+                engine: result.engine || 'Google' 
+            } 
+        }));
+    }
+    setTranslatingIds(prev => {
+        const next = new Set(prev);
+        next.delete(complaint.id);
+        return next;
+    });
   };
 
   const filteredComplaints = filter === 'All' ? complaints : complaints.filter(c => c.status === filter);
@@ -154,7 +188,22 @@ function ComplaintsManager() {
                   </div>
                 </td>
                 <td className="py-4 font-semibold text-gray-800 max-w-sm pr-4">
-                  <div className="line-clamp-3 leading-relaxed text-sm" title={c.text}>{c.text}</div>
+                  <div className="flex flex-col gap-2">
+                    <div className="line-clamp-3 leading-relaxed text-sm" title={c.text}>
+                        {translations[c.id]?.text || c.text}
+                    </div>
+                    <button 
+                        onClick={() => handleTranslate(c)}
+                        disabled={translatingIds.has(c.id)}
+                        className={`flex items-center gap-1.5 w-fit rounded-lg px-2 py-1 text-[10px] font-black transition ${translations[c.id] ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+                    >
+                        {translatingIds.has(c.id) ? <RefreshCw size={10} className="animate-spin" /> : <GlobeIcon size={10} />}
+                        {translations[c.id] ? t('dashboard.show_original') : t('dashboard.translate_btn')}
+                    </button>
+                    {translations[c.id] && (
+                        <div className="text-[9px] text-indigo-500 font-bold uppercase tracking-tighter italic">AI Translated by {translations[c.id].engine}</div>
+                    )}
+                  </div>
                 </td>
                 <td className="py-4">
                   <span className="px-2.5 py-1.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-lg text-xs font-bold shadow-[0_1px_2px_rgba(0,0,0,0.05)] uppercase tracking-wider whitespace-nowrap">

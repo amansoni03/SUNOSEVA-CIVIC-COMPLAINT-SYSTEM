@@ -1,0 +1,23 @@
+{
+  "common": {
+    "welcome": "سنو سیوا میں خوش آمدید",
+    "home": "ہوم",
+    "dashboard": "ڈیش بورڈ",
+    "profile": "پروفائل",
+    "community": "کمیونٹی",
+    "campaigns": "مہمات",
+    "login": "لاگ ان",
+    "logout": "لاگ آؤٹ",
+    "language": "زبان",
+    "english": "English",
+    "hindi": "Hindi",
+    "kannada": "ಕನ್ನಡ",
+    "marathi": "मराठी",
+    "urdu": "اردو"
+  },
+  "home": {
+    "hero_tagline": "ہر آواز ضروری ہے!!",
+    "hero_desc": "اپنی آواز، مقام اور میڈیا کے ذریعے شہری مسائل کی اطلاع دینے کا جدید طریقہ۔",
+    "click_to_submit": "اپنی شکایت درج کرنے کے لیے یہاں کلک کریں"
+  }
+}
